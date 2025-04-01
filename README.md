@@ -86,7 +86,7 @@ In `Main.cpp`, you will see a series of commented lines with different scene nam
 Each time you move or look around, the path tracer resets the sample accumulator (so it starts at SPP = 0 again) and accumulates samples over time.
 
 ## Acknowledgements
-Some of this code is inspired by this fantastic [article](https://landelare.github.io/2023/02/18/dxr-tutorial.html).
+Some of this code is inspired by this fantastic [article](https://landelare.github.io/2023/02/18/dxr-tutorial.html). Scenes converted from [https://benedikt-bitterli.me/resources/](https://benedikt-bitterli.me/resources/)
 
 ## License
 Unless specified otherwise in individual files, this code is available under the MIT License.  
