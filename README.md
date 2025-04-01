@@ -1,6 +1,6 @@
 # GPU Path Tracer
 
-This repository contains a simple pedogogic interactive path tracer built on top of DirectX 12 and DXR. It demonstrates how to:
+This repository contains a simple pedagogic interactive path tracer built on top of DirectX 12 and DXR for the the Games Engineering course at Warwick. It demonstrates how to:
 - Create and manage a **Direct3D 12** device
 - Load and build scenes (e.g., Cornell box, living room, etc.)
 - Implement a real-time path tracer with an HLSL shader
