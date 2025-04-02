@@ -1,3 +1,27 @@
+/*
+MIT License
+
+Copyright (c) 2024 MSc Games Engineering Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #pragma once
 
 // This file implements functions for loading scene data including static models,
@@ -9,6 +33,27 @@
 #include "Scene.h"
 #include "Camera.h"
 #include "Texture.h"
+
+class SceneBounds
+{
+public:
+	Vec3 max;
+	Vec3 min;
+	SceneBounds()
+	{
+		reset();
+	}
+	void extend(Vec3 p)
+	{
+		max = Max(max, p);
+		min = Min(min, p);
+	}
+	void reset()
+	{
+		max = Vec3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+		min = Vec3(FLT_MAX, FLT_MAX, FLT_MAX);
+	}
+};
 
 // Class for loading and storing static model meshes and updating the scene with them
 class StaticModel
@@ -35,6 +80,7 @@ public:
 				STATIC_VERTEX v;
 				memcpy(&v, &gemmeshes[i].verticesStatic[n], sizeof(STATIC_VERTEX));
 				vertices.push_back(v);
+				use<SceneBounds>().extend(v.pos);
 			}
 			// Initialize the mesh with the core context, vertices and indices
 			mesh->init(core, vertices, gemmeshes[i].indices);
@@ -278,5 +324,6 @@ void loadScene(Core* core, Scene* scene, Textures* textures, Camera* camera, std
 		scene->envLum = 0;
 	}
 	// Set the camera movement speed
-	camera->moveSpeed = 0.1f;
+	Vec3 size = use<SceneBounds>().max - use<SceneBounds>().min;
+	camera->moveSpeed = size.length() * 0.05f;
 }

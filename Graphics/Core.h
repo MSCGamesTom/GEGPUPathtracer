@@ -1,3 +1,27 @@
+/*
+MIT License
+
+Copyright (c) 2024 MSc Games Engineering Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #pragma once
 
 #include <d3d12.h>
@@ -107,6 +131,7 @@ public:
     ID3D12CommandQueue* computeQueue;
     IDXGISwapChain3* swapchain;
     DescriptorHeap uavsrvHeap;
+    ID3D12Resource* hdrrendertarget;
     ID3D12Resource* rendertarget;
     ID3D12CommandAllocator* graphicsCommandAllocator;
     ID3D12GraphicsCommandList4* graphicsCommandList;
@@ -221,10 +246,29 @@ public:
             rendertarget->Release();
         }
 
-        // Create a new render target resource
+        // Create a new render target resource for the HDR accumulation texture
         D3D12_HEAP_PROPERTIES heapDesc = {};
         heapDesc.Type = D3D12_HEAP_TYPE_DEFAULT;
 
+        D3D12_RESOURCE_DESC rtDescHDR = {};
+        rtDescHDR.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+        rtDescHDR.Width = width;
+        rtDescHDR.Height = height;
+        rtDescHDR.DepthOrArraySize = 1;
+        rtDescHDR.MipLevels = 1;
+        rtDescHDR.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        rtDescHDR.SampleDesc.Count = 1;
+        rtDescHDR.SampleDesc.Quality = 0;
+        rtDescHDR.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+        device->CreateCommittedResource(&heapDesc, D3D12_HEAP_FLAG_NONE, &rtDescHDR, D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr, IID_PPV_ARGS(&hdrrendertarget));
+
+        // Create an unordered access view (UAV) for the render target
+        D3D12_UNORDERED_ACCESS_VIEW_DESC uavDescHDR = {};
+        uavDescHDR.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        uavDescHDR.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+        device->CreateUnorderedAccessView(hdrrendertarget, nullptr, &uavDescHDR, uavsrvHeap.getNextCPUHandle());
+
+        // Create a new render target resource for the tonr mapped texture
         D3D12_RESOURCE_DESC rtDesc = {};
         rtDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
         rtDesc.Width = width;
@@ -250,16 +294,14 @@ public:
         // Descriptor range for a UAV
         D3D12_DESCRIPTOR_RANGE uavRange = {};
         uavRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-        uavRange.NumDescriptors = 1;
+        uavRange.NumDescriptors = 2;
         uavRange.BaseShaderRegister = 0;
-        // (OffsetInDescriptorsFromTableStart is not explicitly set)
 
         // Root parameter for the UAV descriptor table
         D3D12_ROOT_PARAMETER uavParam = {};
         uavParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
         uavParam.DescriptorTable.NumDescriptorRanges = 1;
         uavParam.DescriptorTable.pDescriptorRanges = &uavRange;
-        // Optionally set ShaderVisibility here
 
         // Root parameter for a shader resource view (SRV)
         D3D12_ROOT_PARAMETER asParam = {};
@@ -337,7 +379,6 @@ public:
         instanceBufferParam.Descriptor.RegisterSpace = 0;
         instanceBufferParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-        // Descriptor range and parameter for an environment texture
         D3D12_DESCRIPTOR_RANGE envTextureRange = {};
         envTextureRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
         envTextureRange.NumDescriptors = 1;
@@ -570,7 +611,7 @@ public:
 
 // Template function 'use': Returns a static instance of type T
 template<typename T>
-T use()
+T &use()
 {
     static T t;
     return t;

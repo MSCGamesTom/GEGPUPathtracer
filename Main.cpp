@@ -1,7 +1,26 @@
-// Game.cpp
-// Main entry point for the GE GPU Pathtracer application.
-// This file sets up the window, graphics core, shaders, scene, camera, and handles input
-// to update and render the scene continuously.
+/*
+MIT License
+
+Copyright (c) 2024 MSc Games Engineering Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 
 #include "Graphics/Window.h"
 #include "Graphics/Core.h"
@@ -12,7 +31,7 @@
 #include "Graphics/GEMLoader.h"
 #include "Graphics/RTSceneLoader.h"
 
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow)
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
     // Define the scene to load.
     std::string sceneName = "cornell-box";
@@ -149,6 +168,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nC
         // Finish and present the frame
         core.finishFrame();
     }
+    core.flushGraphicsQueue();
 
     return 0;
 }
