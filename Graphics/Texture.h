@@ -42,7 +42,7 @@ public:
     int heapOffset;
 
     // Uploads texture data from CPU memory to the GPU texture resource.
-    void uploadData(Core* core, void* data, unsigned long long size, unsigned int rowPitch, unsigned int slicePitch, D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint)
+    void uploadData(Core* core, void* data, unsigned long long size, unsigned int widthInBytes, unsigned int rowPitchInBytes, unsigned int slicePitch, D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint)
     {
         ID3D12Resource* uploadBuffer;
 
@@ -72,7 +72,17 @@ public:
         readRange.Begin = 0;
         readRange.End = 0;
         uploadBuffer->Map(0, &readRange, (void**)&texData);
-        memcpy(texData, data, size);
+        if (widthInBytes == rowPitchInBytes)
+        {
+            memcpy(texData, data, size);
+        } else
+        {
+            unsigned char* dataP = (unsigned char*)data;
+            for (UINT y = 0; y < footprint.Footprint.Height; ++y)
+            {
+                memcpy(texData + y * footprint.Footprint.RowPitch, &dataP[y * widthInBytes], widthInBytes);
+            }
+        }
         uploadBuffer->Unmap(0, NULL);
 
         // Set up the source location for the texture copy (from the upload buffer)
@@ -108,7 +118,7 @@ public:
     }
 
     // Initializes the texture resource on the GPU and uploads the texture data.
-    void init(Core* core, int width, int height, int channels, DXGI_FORMAT format, void* data, DescriptorHeap* srvHeap)
+    void init(Core* core, int width, int height, int channels, unsigned int bytesPerChannel, DXGI_FORMAT format, void* data, DescriptorHeap* srvHeap)
     {
         // Set up heap properties for default (GPU) memory
         D3D12_HEAP_PROPERTIES heapDesc;
@@ -139,9 +149,9 @@ public:
         core->device->GetCopyableFootprints(&desc, 0, 1, 0, &footprint, NULL, NULL, &size);
 
         // Calculate the aligned row width (must be a multiple of 256 bytes)
-        unsigned int alignedWidth = ((width * channels) + 255) & ~255;
+        unsigned int alignedWidth = ((width * channels * bytesPerChannel) + 255) & ~255;
         // Upload the texture data from CPU memory to the GPU texture resource
-        uploadData(core, data, size, alignedWidth, alignedWidth * height, footprint);
+        uploadData(core, data, size, width * channels * bytesPerChannel, alignedWidth, alignedWidth * height, footprint);
 
         // Create a shader resource view (SRV) for the texture so that it can be accessed in shaders
         D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = srvHeap->getNextCPUHandle();
@@ -207,20 +217,7 @@ public:
         // Calculate aligned row width (must be a multiple of 256 bytes)
         unsigned int alignedWidth = ((width * channels) + 255) & ~255;
         const DXGI_FORMAT format = DXGIFormatTraits<T>::format;
-        if ((width * channels) == alignedWidth)
-        {
-            texture->init(core, width, height, channels, format, data, &core->uavsrvHeap);
-        } else
-        {
-            // Allocate new memory for aligned data if necessary
-            T* newData = new T[alignedWidth * height];
-            for (int i = 0; i < height; i++)
-            {
-                memcpy(&newData[i * alignedWidth], &data[i * (width * channels)], width * channels * sizeof(T));
-            }
-            texture->init(core, width, height, channels, format, newData, &core->uavsrvHeap);
-            delete[] newData;
-        }
+        texture->init(core, width, height, channels, sizeof(T), format, data, &core->uavsrvHeap);
         return texture;
     }
 

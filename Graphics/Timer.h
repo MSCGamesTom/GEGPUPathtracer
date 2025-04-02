@@ -51,7 +51,7 @@ public:
 		QueryPerformanceCounter(&now);
 
 		// Calculates the elapsed time in seconds since the last dt call
-		float dtn = ((float)(now.QuadPart - prev.QuadPart) / (float)freq.QuadPart); // * 0.001f
+		float dtn = ((float)(now.QuadPart - prev.QuadPart) / (float)freq.QuadPart);
 
 		// Updates the previous counter to the current one
 		prev = now;
