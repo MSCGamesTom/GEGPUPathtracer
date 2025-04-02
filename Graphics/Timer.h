@@ -1,4 +1,4 @@
-/*
+/********************************************************************************
 MIT License
 
 Copyright (c) 2024 MSc Games Engineering Team
@@ -20,7 +20,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-*/
+********************************************************************************/
 
 #pragma once
 
@@ -28,22 +28,35 @@ SOFTWARE.
 
 #pragma warning( disable : 26495)
 
+// Timer class used to measure elapsed time between calls
 class Timer
 {
 public:
 	LARGE_INTEGER prev;
 	LARGE_INTEGER now;
 	LARGE_INTEGER freq;
+
 	Timer()
 	{
+		// Retrieves the frequency of the high-resolution performance counter
 		QueryPerformanceFrequency(&freq);
+
+		// Initializes the previous counter value
 		QueryPerformanceCounter(&prev);
 	}
+
 	float dt()
 	{
+		// Retrieves the current counter value
 		QueryPerformanceCounter(&now);
-		float dtn = ((float)(now.QuadPart - prev.QuadPart) / (float)freq.QuadPart);// * 0.001f;
+
+		// Calculates the elapsed time in seconds since the last dt call
+		float dtn = ((float)(now.QuadPart - prev.QuadPart) / (float)freq.QuadPart); // * 0.001f
+
+		// Updates the previous counter to the current one
 		prev = now;
+
+		// Returns the elapsed time
 		return dtn;
 	}
 };

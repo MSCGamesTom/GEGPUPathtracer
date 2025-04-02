@@ -134,7 +134,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         {
             float dx = (float)win.mousedx;
             float dy = (float)win.mousedy;
-            camera.look(dx, dy, 0.001f);
+            camera.updateLookDirection(dx, dy, 0.001f);
             SPP = 0;
         }
         if (win.keyPressed(VK_ESCAPE))

@@ -324,6 +324,6 @@ void loadScene(Core* core, Scene* scene, Textures* textures, Camera* camera, std
 		scene->envLum = 0;
 	}
 	// Set the camera movement speed
-	Vec3 size = use<SceneBounds>().max - use<SceneBounds>().min;
-	camera->moveSpeed = size.length() * 0.05f;
+	//Vec3 size = use<SceneBounds>().max - use<SceneBounds>().min;
+	camera->moveSpeed = 0.1f;// size.length() * 0.05f;
 }
